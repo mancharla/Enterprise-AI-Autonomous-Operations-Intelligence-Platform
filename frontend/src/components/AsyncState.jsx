@@ -1,0 +1,1 @@
+export default function AsyncState({loading,error,children}){ if(loading)return <div className="page-card loading">Loading…</div>; if(error)return <div className="error-message">{error}</div>; return children; }

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Enterprise AI WebSocket Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        input {
+            width: 600px;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #111;
+            color: #0f0;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 300px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Enterprise AI Operations - WebSocket Test</h2>
+
+    <label>JWT Token:</label>
+    <br>
+
+    <input id="token" type="text" placeholder="Paste fresh JWT token here">
+
+    <br>
+
+    <label>Device ID:</label>
+    <br>
+
+    <input id="deviceId" type="number" value="1">
+
+    <br>
+
+    <button onclick="connectWebSocket()">
+        Connect
+    </button>
+
+    <button onclick="sendTestMessage()">
+        Send Test Message
+    </button>
+
+    <button onclick="sendOperationalData()">
+        Send Operational Data
+    </button>
+
+    <pre id="output"></pre>
+
+
+    <script>
+
+        let socket = null;
+
+
+        function log(message) {
+
+            document.getElementById("output").textContent +=
+                message + "\n\n";
+        }
+
+
+        function connectWebSocket() {
+
+            const token =
+                document.getElementById("token").value.trim();
+
+            const deviceId =
+                document.getElementById("deviceId").value;
+
+
+            if (!token) {
+
+                log("ERROR: JWT token is required.");
+
+                return;
+            }
+
+
+            if (!deviceId) {
+
+                log("ERROR: Device ID is required.");
+
+                return;
+            }
+
+
+            log("Connecting...");
+            log("Device ID: " + deviceId);
+
+
+            const url =
+                `ws://127.0.0.1:8000/ws/device/${deviceId}?token=${encodeURIComponent(token)}`;
+
+
+            socket = new WebSocket(url);
+
+
+            socket.onopen = function () {
+
+                log(
+                    "WebSocket connected successfully."
+                );
+
+            };
+
+
+            socket.onmessage = function (event) {
+
+                try {
+
+                    const data =
+                        JSON.parse(event.data);
+
+                    log(
+                        "SERVER:\n" +
+                        JSON.stringify(
+                            data,
+                            null,
+                            2
+                        )
+                    );
+
+                } catch (error) {
+
+                    log(
+                        "SERVER RAW:\n" +
+                        event.data
+                    );
+
+                }
+
+            };
+
+
+            socket.onerror = function () {
+
+                log(
+                    "WebSocket error."
+                );
+
+            };
+
+
+            socket.onclose = function (event) {
+
+                log(
+                    "WebSocket disconnected.\n" +
+                    "Code: " +
+                    event.code +
+                    "\nReason: " +
+                    event.reason
+                );
+
+            };
+
+        }
+
+
+        function sendTestMessage() {
+
+            if (
+                !socket ||
+                socket.readyState !== WebSocket.OPEN
+            ) {
+
+                log(
+                    "WebSocket is not connected."
+                );
+
+                return;
+            }
+
+
+            socket.send(
+                JSON.stringify(
+                    {
+                        event: "client_test",
+                        message:
+                            "Hello from operations dashboard"
+                    }
+                )
+            );
+
+        }
+
+
+        function sendOperationalData() {
+
+            if (
+                !socket ||
+                socket.readyState !== WebSocket.OPEN
+            ) {
+
+                log(
+                    "WebSocket is not connected."
+                );
+
+                return;
+            }
+
+
+            const data = {
+
+                event: "operational_data",
+
+                energy_kwh: 85.50,
+
+                operational_load: 72.0,
+
+                utilization_percent: 68.0,
+
+                temperature_c: 28.5
+
+            };
+
+
+            log(
+                "CLIENT:\n" +
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            );
+
+
+            socket.send(
+                JSON.stringify(data)
+            );
+
+        }
+
+    </script>
+
+</body>
+
+</html>
