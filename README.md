@@ -54,8 +54,6 @@ React Frontend → FastAPI Backend → ML/Business Logic → PostgreSQL
 - XGBoost
 
 ### Supporting Technologies
-- Redis
-- Celery
 - WebSockets
 - ReportLab
 - OpenPyXL
